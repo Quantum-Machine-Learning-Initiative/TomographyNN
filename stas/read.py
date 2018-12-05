@@ -11,11 +11,8 @@ import sys
 I create a preprocessed_data folder wehere inside stuff the new files of data; ready-to-use for calculations
 """
 
-mypath = 'datas'
-preprocessed_path = 'preprocessed_data'
-
-
-def from_txt_to_csv():
+def from_txt_to_csv(path):
+	mypath=path
 
 	l = glob.glob(mypath+'/*.dat')
 	
@@ -54,8 +51,9 @@ def states_regex_string(content2):
 
 	return newtest
 
-def read():
+def read(path):
 
+	mypath=path
 	
 	fullpath1 = os.path.join(mypath,'proj.csv')
 	fullpath2 = os.path.join(mypath,'states.csv')
@@ -118,7 +116,7 @@ def dumper(project,states):
 	
 def main(argv=None):
 
-	mypath = 'datas'
+	
 	preprocessed_path = 'preprocessed_data'
 
 	argv = sys.argv if argv is None else argv
@@ -127,13 +125,11 @@ def main(argv=None):
 	if not os.path.exists(preprocessed_path):
 		os.makedirs(preprocessed_path)
 
-	import pdb;
-	pdb.set_trace()
 
-	proj, states,  = read()	
-	#dumper(proj,states)
+	proj, states,  = read(argv[2])	
+	dumper(proj,states)
 
-def parsers():
+def parser():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--original_data', help = 'folders with original data')
 	return parser
