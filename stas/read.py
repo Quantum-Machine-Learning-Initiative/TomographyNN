@@ -6,11 +6,15 @@ from os import walk
 import json
 import argparse
 import sys
+import csv
+
 
 """
 I create a preprocessed_data folder wehere inside stuff the new files of data; ready-to-use for calculations
 """
-
+"""
+I MUST FIX THIS WITH AN ARGPARSE
+"""
 def from_txt_to_csv(path):
 	mypath=path
 
@@ -85,7 +89,7 @@ def read(path):
 
 	"""
 
-	states_values_string = map(lambda x : states_regex_string(x), states_content[1:-1])
+	states_values_string = map(lambda x : states_regex_string(x), states_content[1:-2])
 	states_values_string = list(states_values_string)
 
 	"""
@@ -95,14 +99,59 @@ def read(path):
 	proj_content = [x.strip(',').strip('\n').strip('\,') for x in proj_content]
 	proj_content = list(proj_content)
 	
-	proj_values  = map(lambda x: projectors_regex(x), proj_content[1:-1] )
+	proj_values  = map(lambda x: projectors_regex(x), proj_content[1:-2] )
 	proj_values = list(proj_values)
 
 	proj_values = [ [float(x) for x in line] for line in proj_values]
 
+	"""
+	files bad.dat and good.dat
+	"""
+
+
 	return proj_values, states_values_string
 
-def dumper(project,states):
+
+def read_bad_good(path):
+	mypath=path
+	
+	fullpath1 = os.path.join(mypath,'bad.csv')
+	fullpath2 = os.path.join(mypath,'good.csv')
+
+	with open(fullpath1) as bad_data, open (fullpath2) as good_data : 
+
+		bad_content = csv.reader(bad_data,delimiter =' ')
+		good_content = good_data.readlines()
+
+		bad_content=next(bad_content)
+		
+
+	"""
+	BAD_CONTENT DATA RESHAPING
+	"""
+	
+	bad_content = np.array(bad_content).reshape(1000,36)
+	bad_values = [ [float(x.replace('{','').replace('}','').replace(',','')) for x in line] for line in bad_content]
+	
+
+	"""
+	PROJ_CONTENT DATA RESHAPING
+	"""
+
+	good_content = [x.strip(',').strip('\n').strip('\,') for x in good_content]
+	good_content = list(good_content)
+	
+	good_values  = map(lambda x: projectors_regex(x), good_content[1:-1] )
+	good_values = list(good_values)
+
+	good_values = [ [float(x) for x in line] for line in good_values]
+
+	import pdb;
+	pdb.set_trace()
+
+	return bad_values, good_values
+
+def dumper(preprocessed_path,project,states):
 
 	"""
 	take two list and dump them inside json files.
@@ -110,14 +159,23 @@ def dumper(project,states):
 	return: two json files 
 	"""
 
-	with open (preprocessed_path+"/projectors_new.json ","w") as proj_, open (preprocessed_path+'/states_new.json','w') as st_:
+	with open(preprocessed_path+'/projectors_new.csv','w') as proj_, open(preprocessed_path+'/states_new.csv','w') as st_:
 		json.dump(project,proj_)
 		json.dump(states,st_)
+
+def dumper2(preprocessed_path, bad,good):
+
+	with open(preprocessed_path+'/bad_new.csv','w') as b_, open(preprocessed_path+'/good_new.csv','w') as g_:
+		json.dump(bad,b_)
+		json.dump(good,g_)
+
 	
 def main(argv=None):
 
 	
 	preprocessed_path = 'preprocessed_data'
+
+	from_txt_to_csv('datas')
 
 	argv = sys.argv if argv is None else argv
 	args = parser().parse_args(args=argv[1:])
@@ -125,9 +183,16 @@ def main(argv=None):
 	if not os.path.exists(preprocessed_path):
 		os.makedirs(preprocessed_path)
 
+	import pdb;
+	pdb.set_trace()
 
-	proj, states,  = read(argv[2])	
-	dumper(proj,states)
+	#HERE I was dumping the states and projectors
+	#proj, states,  = read(argv[2])	
+	#dumper(preprocessed_path,proj,states)
+
+	bad,good = read_bad_good(argv[2])
+	dumper2(preprocessed_path,bad,good)
+	
 
 def parser():
 	parser = argparse.ArgumentParser()
